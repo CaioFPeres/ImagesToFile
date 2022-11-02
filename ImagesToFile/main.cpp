@@ -6,7 +6,36 @@
 #include <locale>
 #include <codecvt>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb-master/stb_image.h"
+
 using namespace std;
+
+typedef struct imgVec {
+    unsigned char* data;
+    int height;
+    int width;
+}img;
+
+// returns normalized matrix
+img* STBLoadImage(wstring fileName) {
+
+    //convert wstring to string
+    using convert_type = std::codecvt_utf8<wchar_t>;
+    std::wstring_convert<convert_type, wchar_t> converter;
+
+    std::string stringFileName = converter.to_bytes(fileName);
+
+    int width, height, bpp;
+
+    unsigned char* data = stbi_load(stringFileName.c_str(), &width, &height, &bpp, 0);
+    img* im = new img();
+    im->data = data;
+    im->width = width;
+    im->height = height;
+
+    return im;
+}
 
 vector<wstring>* getFilesNames(LPTSTR lpDir) {
 
@@ -80,22 +109,18 @@ void ConvertToSingleFile(wstring folder, vector<wstring>* fileNames) {
 
         wcout << folder + wstring(L"\\") + (*fileNames)[i] << '\n';
 
-        ifstream file;
-        file.open(folder + wstring(L"\\") + (*fileNames)[i], ios_base::in | ios_base::binary);
+        img* img = STBLoadImage(folder + wstring(L"\\") + (*fileNames)[i]);
         
-        while (!file.eof())
-        {
-            char c = file.get();
-            outFile << c;
+        for(int i = 0 ; i < img->height*img->width; i++){
+            outFile << (int)img->data[i] << ' ';
         }
 
         outFile << '\n';
-        file.close();
-
+        stbi_image_free(img->data);
+        free(img);
     }
 
     outFile.close();
-
 }
 
 int main(int argc, char** argv){
