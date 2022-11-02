@@ -17,7 +17,7 @@ typedef struct imgVec {
     int width;
 }img;
 
-// returns normalized matrix
+
 img* STBLoadImage(wstring fileName) {
 
     //convert wstring to string
